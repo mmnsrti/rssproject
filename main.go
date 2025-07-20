@@ -17,7 +17,7 @@ func main() {
 	if portString == "" {
 		log.Fatal("Environment variable PORT is not set")
 	}
-	
+
 	router := chi.NewRouter()
 	srv := &http.Server{
 		Handler: router,
@@ -25,9 +25,10 @@ func main() {
 	}
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE","OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: false,
+		ExposedHeaders:   []string{"Link"},
 	}))
 	log.Printf("Starting server on port %s", portString)
 	err := srv.ListenAndServe()
