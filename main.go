@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
@@ -19,10 +18,6 @@ func main() {
 	}
 
 	router := chi.NewRouter()
-	srv := &http.Server{
-		Handler: router,
-		Addr:    ":" + portString,
-	}
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -30,6 +25,15 @@ func main() {
 		AllowCredentials: false,
 		ExposedHeaders:   []string{"Link"},
 	}))
+	srv := &http.Server{
+		Handler: router,
+		Addr:    ":" + portString,
+	}
+
+	v1Router := chi.NewRouter()
+	v1Router.Get("/healthz", handlerReadiness)
+	router.Mount("/v1", v1Router)
+	v1Router.Get("/error", handlerError)
 	log.Printf("Starting server on port %s", portString)
 	err := srv.ListenAndServe()
 	if err != nil {
