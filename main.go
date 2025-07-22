@@ -56,12 +56,12 @@ func main() {
 	v1Router.Get("/error", handlerError)
 	v1Router.Post("/users", apicfg.handlerCreateUser)
 
-	
 	router.Mount("/v1", v1Router)
 	log.Printf("Starting server on port %s", portString)
-	log.Fatal(srv.ListenAndServe())
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal("Error starting server:", err)
 	}
+
 	fmt.Println("Environment variable PORT is set to:", portString)
 }
