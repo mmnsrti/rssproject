@@ -11,9 +11,11 @@ import (
 	"github.com/mmnsrti/rssproject/internal/database"
 )
 
-func (apicfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (apicfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request,user database.User) {
 	type parameters struct {
 		Name string `json:"name"`
+		Url  string `json:"url"`
+
 	}
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
@@ -22,19 +24,18 @@ func (apicfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	user, err := apicfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+	feed, err := apicfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		Name:      params.Name,
+		UserID:    user.ID,
+		Url:       params.Url,
 	})
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error creating user: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Error creating feed: %v", err))
 		return
 	}
 
-	respondWithJSON(w, 201, databaseUserToUser(user))
-}
-func (apicfg *apiConfig) handlerGetUserByAPIKey(w http.ResponseWriter, r *http.Request, user database.User) {
-	respondWithJSON(w, 200, databaseUserToUser(user))
+	respondWithJSON(w, 201, databaseFeedToFeed(feed))
 }
