@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mmnsrti/rssproject/internal/auth"
 	"github.com/mmnsrti/rssproject/internal/database"
 )
 

@@ -56,6 +56,7 @@ func main() {
 	v1Router.Get("/error", handlerError)
 	v1Router.Post("/users", apicfg.handlerCreateUser)
 	v1Router.Get("/users", apicfg.authMiddleware(apicfg.handlerGetUserByAPIKey))
+	v1Router.Post("/feeds", apicfg.authMiddleware(apicfg.handlerCreateFeed))
 	router.Mount("/v1", v1Router)
 	log.Printf("Starting server on port %s", portString)
 	err = srv.ListenAndServe()
