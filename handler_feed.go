@@ -10,11 +10,10 @@ import (
 	"github.com/mmnsrti/rssproject/internal/database"
 )
 
-func (apicfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request,user database.User) {
+func (apicfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type parameters struct {
 		Name string `json:"name"`
 		Url  string `json:"url"`
-
 	}
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
@@ -37,4 +36,14 @@ func (apicfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 	}
 
 	respondWithJSON(w, 201, databaseFeedToFeed(feed))
+}
+func (apicfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+
+	feeds, err := apicfg.DB.GetFeeds(r.Context())
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error creating feed: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 201, databaseFeedsToFeeds(feeds))
 }
