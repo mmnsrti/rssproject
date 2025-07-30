@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,10 +76,12 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 			UpdatedAt:   time.Now(),
 		})
 		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				log.Printf("Post already exists: %s", item.Title)
+				continue
+			}
 			log.Printf("Error creating post: %v", err)
-			continue
-		} else {
-			log.Printf("Post created successfully: %s", item.Title)
+
 		}
 
 	}
