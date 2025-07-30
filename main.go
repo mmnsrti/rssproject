@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -19,6 +20,11 @@ type apiConfig struct {
 }
 
 func main() {
+	feed, err := urlToFeed("https://wagslane.dev/index.xml")
+	if err != nil {
+		log.Fatal("Error fetching RSS feed:", err)
+	}
+	fmt.Println("Feed Title:", feed)
 	godotenv.Load(".env")
 	portString := os.Getenv("PORT")
 	if portString == "" {
@@ -33,11 +39,11 @@ func main() {
 		log.Fatal("Error connecting to the database:", err)
 	}
 	queries := database.New(conn)
-
+	db := database.New(conn)
 	apicfg := apiConfig{
 		DB: queries,
 	}
-
+	go startScraping(db, 10, 5*time.Minute)
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -60,7 +66,7 @@ func main() {
 	v1Router.Get("/feeds", apicfg.handlerGetFeeds)
 	v1Router.Post("/feed_follows", apicfg.authMiddleware(apicfg.handlerCreateFeedFollow))
 	v1Router.Get("/feed_follows", apicfg.authMiddleware(apicfg.handlerGetFeedFollows))
-	v1Router.Delete("/feed_follows/{feedFollowID}", apicfg.authMiddleware(apicfg.handlerFeedFollowDelete))
+	v1Router.Delete("/feed_follows/{feedFollowID}", apicfg.authMiddleware(apicfg.handlerDeleteFeedFollows))
 	router.Mount("/v1", v1Router)
 	log.Printf("Starting server on port %s", portString)
 	err = srv.ListenAndServe()
