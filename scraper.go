@@ -67,7 +67,7 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 
 		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
 			Title:       item.Title,
-			Description: description.String, // Use description.String if CreatePostParams expects string
+			Description: description, // Use description.String if CreatePostParams expects string
 			PublishedAt: pubAt,
 			Url:         item.Link,
 			FeedID:      feed.ID,
