@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,14 +15,14 @@ import (
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
-        id ,
+        id,
         created_at,
         updated_at,
         title,
         description,
         published_at,
         url,
-        feed_id 
+        feed_id
     )
 VALUES (
         $1,
@@ -41,7 +42,7 @@ type CreatePostParams struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Title       string
-	Description string
+	Description sql.NullString
 	PublishedAt time.Time
 	Url         string
 	FeedID      uuid.UUID
@@ -70,4 +71,49 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		&i.FeedID,
 	)
 	return i, err
+}
+
+const getPostForUser = `-- name: GetPostForUser :many
+SELECT posts.id, posts.created_at, posts.updated_at, posts.title, posts.description, posts.published_at, posts.url, posts.feed_id from posts
+JOIN feeds_follows ON posts.feed_id = feeds_follows.feed_id
+WHERE feeds_follows.user_id = $1
+ORDER BY posts.published_at DESC
+LIMIT $2
+`
+
+type GetPostForUserParams struct {
+	UserID uuid.UUID
+	Limit  int32
+}
+
+func (q *Queries) GetPostForUser(ctx context.Context, arg GetPostForUserParams) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostForUser, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Description,
+			&i.PublishedAt,
+			&i.Url,
+			&i.FeedID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

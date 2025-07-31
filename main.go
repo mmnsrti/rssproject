@@ -67,6 +67,8 @@ func main() {
 	v1Router.Post("/feed_follows", apicfg.authMiddleware(apicfg.handlerCreateFeedFollow))
 	v1Router.Get("/feed_follows", apicfg.authMiddleware(apicfg.handlerGetFeedFollows))
 	v1Router.Delete("/feed_follows/{feedFollowID}", apicfg.authMiddleware(apicfg.handlerDeleteFeedFollows))
+	v1Router.Get("/posts", apicfg.authMiddleware(apicfg.handlerGetPostsForUsers))
+
 	router.Mount("/v1", v1Router)
 	log.Printf("Starting server on port %s", portString)
 	err = srv.ListenAndServe()
